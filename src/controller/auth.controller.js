@@ -41,13 +41,10 @@ class AuthController {
     //     return formatResponse(res, 200, 'Login in sucessfully', 'LOGIN_SUCESSFULLY');
     // }
 
-    login = async (req, res) => {
-        const { email, password } = req.body;
-
-        const user = await userService.loginUser(email, password);
+    register = async (req, res) => {
+        const user = await userService.registerUser(req.body);
 
         const accessExpirySecs = timeStringToSeconds(CONSTANT.ACCESS_TOKEN_EXPIRATION);
-
         const refreshExpirySecs = timeStringToSeconds(CONSTANT.REFRESH_TOKEN_EXPIRATION);
 
         const session = await userService.createAuthSession({
@@ -58,7 +55,6 @@ class AuthController {
         });
 
         const accessToken = userService.generateAccessToken({ userId: user.id, email: user.email });
-
         const refreshToken = userService.generateRefreshToken({ userId: user.id, sessionId: session.id });
 
         res.cookie('accessToken', accessToken, {
@@ -76,7 +72,43 @@ class AuthController {
             maxAge: refreshExpirySecs * 1000,
         });
 
-        return formatResponse(res, 200, 'Logged in successfully', 'LOGIN_SUCCESSFULLY');
+        return formatResponse(res, 200, 'Registered Sucessfully', user,'REGISTER_SUCCESSFULLY');
+    }
+
+    login = async (req, res) => {
+        const { email, password } = req.body;
+
+        const user = await userService.loginUser(email, password);
+
+        const accessExpirySecs = timeStringToSeconds(CONSTANT.ACCESS_TOKEN_EXPIRATION);
+        const refreshExpirySecs = timeStringToSeconds(CONSTANT.REFRESH_TOKEN_EXPIRATION);
+
+        const session = await userService.createAuthSession({
+            userId: user.id,
+            expiresAt: new Date(
+                Date.now() + refreshExpirySecs * 1000
+            ),
+        });
+
+        const accessToken = userService.generateAccessToken({ userId: user.id, email: user.email });
+        const refreshToken = userService.generateRefreshToken({ userId: user.id, sessionId: session.id });
+
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: config.APP_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: accessExpirySecs * 1000,
+        });
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: config.APP_ENV === 'production',
+            sameSite: 'lax',
+            path: '/api/auth',
+            maxAge: refreshExpirySecs * 1000,
+        });
+
+        return formatResponse(res, 200, 'Logged in successfully', user,'LOGIN_SUCCESSFULLY');
     };
 
     refresh = async (req, res) => {

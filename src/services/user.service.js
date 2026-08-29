@@ -1,14 +1,90 @@
 import prisma from '#config/prisma.js'
 import jwt from 'jsonwebtoken'
-import * as CONSTANT from '../constant/constant.js'
+import * as CONSTANT from '#constant/constant.js'
 import config from '#config/config.js';
 import bcrypt from 'bcrypt';
 import AppError from '#utils/AppError.js';
 import { verifyToken } from '#utils/jwt.js';
+import workSpaceUser from '#constant/workspaceUser.js';
 class UserService {
+
+    async registerUser(userData) {
+        const existingEmail = await prisma.user.findUnique({ where: userData.email });
+        if (existingEmail) {
+            throw new AppError('Email Already Registered', 422, 'EMAIL_ALREADY_REGISTERED');
+        }
+
+        const hashedPassword = await bcrypt.hash(userData.password, BCRYPT_SALT_ROUNDS);
+
+        const result = await prisma.$transaction(async (tx) => {
+            const user = await tx.user.create({
+                data: {
+                    name: userData.name,
+                    email: userData.email,
+                    password: hashedPassword,
+                }
+            });
+
+            const baseSlug = this.generateSlug(userData.name);
+            const slug = `${baseSlug}-${crypto.randomUUID().slice(0, 8)}`;
+
+            const workspace = await tx.workspace.create({
+                data: {
+                    name: userData.name,
+                    slug,
+                    ownerId: user.id,
+                },
+            });
+
+            const membership = await tx.workspaceUser.create({
+                data: {
+                    workspaceId: workspace.id,
+                    userId: user.id,
+                    role: workSpaceUser.OWNER,
+                    status: workSpaceUser.ACTIVE,
+                    joinedAt: new Date(),
+                },
+            });
+
+            return user.id;
+        });
+
+        const user = await prisma.user.findUnique({
+            where: {
+                id: result,
+            },
+            include: {
+                workspaceMemberships: {
+                    include: {
+                        workspace: true,
+                    },
+                },
+            },
+        });
+
+        const { password, ...safeUser } = user;
+
+        return safeUser;
+
+    }
+
+    generateSlug(value) {
+        return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    }
+
     async loginUser(email, password) {
+        // const user = await prisma.user.findUnique({
+        //     where: { email },
+        // });
         const user = await prisma.user.findUnique({
             where: { email },
+            include: {
+                workspaceMemberships: {
+                    include: {
+                        workspace: true,
+                    },
+                },
+            },
         });
 
         if (!user || !await bcrypt.compare(password, user.password)) {
