@@ -9,12 +9,14 @@ import workSpaceUser from '#constant/workspaceUser.js';
 class UserService {
 
     async registerUser(userData) {
-        const existingEmail = await prisma.user.findUnique({ where: userData.email });
+        const existingEmail = await prisma.user.findUnique({
+            where: { email: userData.email }
+        });
         if (existingEmail) {
             throw new AppError('Email Already Registered', 422, 'EMAIL_ALREADY_REGISTERED');
         }
 
-        const hashedPassword = await bcrypt.hash(userData.password, BCRYPT_SALT_ROUNDS);
+        const hashedPassword = await bcrypt.hash(userData.password, Number(config.BCRYPT_SALT_ROUNDS));
 
         const result = await prisma.$transaction(async (tx) => {
             const user = await tx.user.create({
@@ -36,7 +38,7 @@ class UserService {
                 },
             });
 
-            const membership = await tx.workspaceUser.create({
+            await tx.workspaceUser.create({
                 data: {
                     workspaceId: workspace.id,
                     userId: user.id,
@@ -97,7 +99,7 @@ class UserService {
     }
 
     generateAccessToken({ userId = null, email = null }) {
-        return jwt.sign({ id: userId, email }, config.JWT_SECRET, {
+        return jwt.sign({ id: String(userId), email }, config.JWT_SECRET, {
             expiresIn: CONSTANT.ACCESS_TOKEN_EXPIRATION,
         });
     }
