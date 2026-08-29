@@ -10,7 +10,12 @@
   },
   "imports": {
     "#config/*": "./src/config/*",
-    "#controller/*": "./src/controller/*"
+    "#controller/*": "./src/controller/*",
+    "#middleware/*": "./src/middleware/*",
+    "#routes/*": "./src/routes/*",
+    "#utils/*": "./src/utils/*",
+    "#validators/*": "./src/validators/*",
+    "#services/*": "./src/services/*"
   },
   "keywords": [],
   "author": "",
@@ -18,11 +23,15 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-validator": "^7.3.2",
     "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "passport": "^0.7.0",
     "pg": "^8.23.0"
   },
   "overrides": {

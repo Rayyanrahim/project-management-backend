@@ -11,6 +11,8 @@ const config = {
   DB_USER: process.env.DB_USER || 'postgres',
   DB_PASSWORD: process.env.DB_PASSWORD || 'password',
   DB_NAME: process.env.DB_NAME || 'mydatabase',
+  BCRYPT_SALT_ROUNDS: process.env.BCRYPT_SALT_ROUNDS || 10,
+  JWT_SECRET : process.env.JWT_SECRET
 }
 
 config.DATABASE_URL = buildDatabaseUrl({

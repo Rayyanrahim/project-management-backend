@@ -1,0 +1,17 @@
+model WorkspaceUser {
+    id          BigInt    @id @default(autoincrement())
+    workspaceId BigInt    @map("workspace_id")
+    userId      BigInt    @map("user_id")
+    role        String    @db.VarChar(255)
+    status      String    @db.VarChar(255)
+    invitedBy   BigInt?   @map("invited_by")
+    joinedAt    DateTime? @map("joined_at")
+    createdAt   DateTime  @default(now()) @map("created_at")
+    updatedAt   DateTime  @updatedAt @map("updated_at")
+
+    workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+    user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([workspaceId, userId], name: "uniq_workspace_user")
+    @@map("workspace_users")
+}

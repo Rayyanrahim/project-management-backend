@@ -1,0 +1,11 @@
+import express from 'express'
+import authController from '#controller/auth.controller.js'
+import { validate } from '#middleware/validator.middleware.js'
+import { loginValidator } from '#validators/auth.validator.js'
+
+const router = express.Router()
+
+
+router.post('/login',validate(loginValidator), authController.login);
+
+export default router
