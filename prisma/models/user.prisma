@@ -11,6 +11,7 @@ model User {
 
   ownedWorkspaces      Workspace[]     @relation("WorkspaceOwner")
   workspaceMemberships WorkspaceUser[]
+  authSessions         AuthSession[]
 
   @@map("users")
 }
