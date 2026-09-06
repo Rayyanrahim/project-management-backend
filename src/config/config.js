@@ -13,7 +13,14 @@ const config = {
   DB_NAME: process.env.DB_NAME || 'mydatabase',
   BCRYPT_SALT_ROUNDS: process.env.BCRYPT_SALT_ROUNDS || 10,
   JWT_SECRET : process.env.JWT_SECRET,
-  JWT_REFRESH_SECRET : process.env.JWT_REFRESH_SECRET
+  JWT_REFRESH_SECRET : process.env.JWT_REFRESH_SECRET,
+  SMTP_HOST: process.env.SMTP_HOST,
+  SMTP_PORT: Number(process.env.SMTP_PORT || 587),
+  SMTP_SECURE: process.env.SMTP_SECURE === 'true',
+  SMTP_USER: process.env.SMTP_USER,
+  SMTP_PASSWORD: process.env.SMTP_PASSWORD,
+  SMTP_FROM: process.env.SMTP_FROM,
+  PASSWORD_RESET_URL: process.env.PASSWORD_RESET_URL,
 }
 
 config.DATABASE_URL = buildDatabaseUrl({
