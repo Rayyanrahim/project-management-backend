@@ -1,0 +1,14 @@
+model Verification {
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt   @map("user_id")
+  email     String   @db.VarChar(255)
+  token     String?
+  status    String   @default("PENDING") @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@map("verifications")
+}

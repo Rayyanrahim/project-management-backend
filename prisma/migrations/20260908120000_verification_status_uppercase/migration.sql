@@ -1,0 +1,10 @@
+-- AlterTable
+ALTER TABLE "verifications" ALTER COLUMN "status" SET DEFAULT 'PENDING';
+
+-- Normalize to PENDING | VERIFIED | EXPIRED
+UPDATE "verifications"
+SET "status" = CASE UPPER("status")
+  WHEN 'PENDING' THEN 'PENDING'
+  WHEN 'VERIFIED' THEN 'VERIFIED'
+  ELSE 'EXPIRED'
+END;

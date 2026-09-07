@@ -93,6 +93,10 @@ class UserService {
             throw new AppError('Invalid credentials', 422, 'INVALID_CREDENTIALS');
         }
 
+        if (!user.isActive) {
+            throw new AppError('User account is inactive.', 403, 'ACCOUNT_INACTIVE');
+        }
+
         user.password = undefined;
 
         return user;
@@ -110,11 +114,10 @@ class UserService {
         });
     }
 
-    async createAuthSession({ userId, rememberMe, expiresAt }) {
+    async createAuthSession({ userId, expiresAt }) {
         return prisma.authSession.create({
             data: {
                 userId: BigInt(userId),
-                rememberMe,
                 expiresAt,
             },
         });

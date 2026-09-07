@@ -2,3 +2,5 @@ export const ACCESS_TOKEN_EXPIRATION = '15m';
 export const REFRESH_TOKEN_EXPIRATION = '30d';
 export const FORGOT_PASSWORD_TOKEN_EXPIRATION = '15m';
 export const VERIFICATION_TOKEN_EXPIRATION = '10m';
+export const OTP_LENGTH = 6;
+export const STATIC_OTP_CODE = '123456';

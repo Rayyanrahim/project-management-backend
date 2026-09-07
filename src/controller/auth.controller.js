@@ -4,75 +4,37 @@ import * as CONSTANT from '../constant/constant.js'
 import userService from '#services/user.service.js'
 import authService from '#services/auth.service.js';
 import config from '#config/config.js';
+import AppError from '#utils/AppError.js';
+
 class AuthController {
+    logout = async (req, res) => {
+        await authService.logout(req.cookies?.refreshToken, req.user.id);
+        authService.clearAuthCookies(res);
+        return formatResponse(res, 200, 'Logged out successfully.', null, 'LOGOUT_SUCCESSFULLY');
+    };
+
     register = async (req, res) => {
         const user = await userService.registerUser(req.body);
+        const verification = await authService.generateOtp(user);
+        await authService.setAuthCookies(res, user);
 
-        const accessExpirySecs = timeStringToSeconds(CONSTANT.ACCESS_TOKEN_EXPIRATION);
-        const refreshExpirySecs = timeStringToSeconds(CONSTANT.REFRESH_TOKEN_EXPIRATION);
-
-        const session = await userService.createAuthSession({
-            userId: user.id,
-            expiresAt: new Date(
-                Date.now() + refreshExpirySecs * 1000
-            ),
-        });
-
-        const accessToken = userService.generateAccessToken({ userId: user.id, email: user.email });
-        const refreshToken = userService.generateRefreshToken({ userId: user.id, sessionId: session.id });
-
-        res.cookie('accessToken', accessToken, {
-            httpOnly: true,
-            secure: config.APP_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: accessExpirySecs * 1000,
-        });
-
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: config.APP_ENV === 'production',
-            sameSite: 'lax',
-            path: '/api/auth',
-            maxAge: refreshExpirySecs * 1000,
-        });
-
-        return formatResponse(res, 200, 'Registered Sucessfully', user, 'REGISTER_SUCCESSFULLY');
-    }
+        return formatResponse(res, 200, 'Registered successfully. OTP sent for verification.', { ...user, verification }, 'REGISTER_SUCCESSFULLY');
+    };
 
     login = async (req, res) => {
         const { email, password } = req.body;
-
         const user = await userService.loginUser(email, password);
+        const verification = await authService.generateOtp(user);
+        await authService.setAuthCookies(res, user);
 
-        const accessExpirySecs = timeStringToSeconds(CONSTANT.ACCESS_TOKEN_EXPIRATION);
-        const refreshExpirySecs = timeStringToSeconds(CONSTANT.REFRESH_TOKEN_EXPIRATION);
+        return formatResponse(res, 200, 'Logged in successfully.', { ...user, verification }, 'LOGIN_SUCCESSFULLY');
+    };
 
-        const session = await userService.createAuthSession({
-            userId: user.id,
-            expiresAt: new Date(
-                Date.now() + refreshExpirySecs * 1000
-            ),
-        });
+    verifyOtp = async (req, res) => {
+        const { user, verification } = await authService.verifyOtp({ userId: req.user.id, otp: req.body.otp });
+        await authService.setAuthCookies(res, user);
 
-        const accessToken = userService.generateAccessToken({ userId: user.id, email: user.email });
-        const refreshToken = userService.generateRefreshToken({ userId: user.id, sessionId: session.id });
-
-        res.cookie('accessToken', accessToken, {
-            httpOnly: true,
-            secure: config.APP_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: accessExpirySecs * 1000,
-        });
-
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: config.APP_ENV === 'production',
-            sameSite: 'lax',
-            path: '/api/auth',
-            maxAge: refreshExpirySecs * 1000,
-        });
-
-        return formatResponse(res, 200, 'Logged in successfully', user, 'LOGIN_SUCCESSFULLY');
+        return formatResponse(res, 200, 'OTP verified successfully.', { ...user, verification }, 'OTP_VERIFIED');
     };
 
     refresh = async (req, res) => {

@@ -1,4 +1,13 @@
 import { body } from 'express-validator';
+import { OTP_LENGTH } from '#constant/constant.js';
+
+export const verifyOtpValidator = [
+    body('otp')
+        .isString()
+        .bail()
+        .matches(new RegExp(`^\\d{${OTP_LENGTH}}$`))
+        .withMessage(`OTP must be a ${OTP_LENGTH}-digit string`),
+];
 
 export const loginValidator = [
     body('email')
