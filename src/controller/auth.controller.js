@@ -36,7 +36,7 @@ class AuthController {
             maxAge: refreshExpirySecs * 1000,
         });
 
-        return formatResponse(res, 200, 'Registered Sucessfully', user,'REGISTER_SUCCESSFULLY');
+        return formatResponse(res, 200, 'Registered Sucessfully', user, 'REGISTER_SUCCESSFULLY');
     }
 
     login = async (req, res) => {
@@ -72,7 +72,7 @@ class AuthController {
             maxAge: refreshExpirySecs * 1000,
         });
 
-        return formatResponse(res, 200, 'Logged in successfully', user,'LOGIN_SUCCESSFULLY');
+        return formatResponse(res, 200, 'Logged in successfully', user, 'LOGIN_SUCCESSFULLY');
     };
 
     refresh = async (req, res) => {
@@ -97,15 +97,21 @@ class AuthController {
 
         await userService.updateSessionLastUsed(session.id);
 
-        return formatResponse(res, 200, 'Token refreshed successfully', 'TOKEN_REFRESHED');
+        return formatResponse(res, 200, 'Token refreshed successfully', null, 'TOKEN_REFRESHED');
     };
 
     forgotPassword = async (req, res) => {
         const { email } = req.body;
         await authService.forgotPassword(email);
-        return formatResponse(res, 200,
-            'If an account with that email exists, a password reset link has been sent.',
-            null, 'FORGOT_PASSWORD_EMAIL_SENT');
+
+        return formatResponse(res, 200, 'If an account with that email exists, a password reset link has been sent.', null, 'FORGOT_PASSWORD_EMAIL_SENT');
     };
+
+    resetPassword = async (req, res) => {
+        const { token, password } = req.body;
+        await authService.resetPassword(token, password);
+
+        return formatResponse(res, 200, 'Password reset successfully.', null, 'PASSWORD_RESET_SUCCESSFUL');
+    }
 }
 export default new AuthController();

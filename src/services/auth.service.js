@@ -4,6 +4,7 @@ import config from '#config/config.js';
 import { FORGOT_PASSWORD_TOKEN_EXPIRATION } from '#constant/constant.js';
 import timeStringToSeconds from '#utils/timeUtils.js';
 import sendEmail from '#utils/sendEmail.js';
+import bcrypt from 'bcrypt';
 import AppError from '#utils/AppError.js';
 
 class AuthService {
@@ -38,10 +39,63 @@ class AuthService {
                 subject: 'Reset your password',
                 text: `Use this link to reset your password:\n${resetUrl.toString()}\n\nThis link expires in ${expirySeconds / 60} minutes. If you did not request a password reset, you can ignore this email.`,
             });
-        } catch {
+        } catch(error) {
             await prisma.passwordResetToken.deleteMany({ where: { token: tokenHash } });
-            throw new AppError('Unable to send password reset email. Please try again.', 503, 'PASSWORD_RESET_EMAIL_FAILED');
+            throw new AppError('Unable to send password reset email. Please try again.', 500, 'PASSWORD_RESET_EMAIL_FAILED');
         }
+    }
+
+    async resetPassword(token, newPassword) {
+        const tokenHash = createHash('sha256').update(token).digest('hex');
+
+        const resetToken = await prisma.passwordResetToken.findUnique({
+            where: {
+                token: tokenHash,
+            },
+            include: {
+                user: true,
+            },
+        });
+
+        if (!resetToken || resetToken.expiresAt < new Date() || !resetToken.user.isActive || !resetToken.user) {
+            throw new AppError('Password reset token is invalid or has expired.', 400, 'INVALID_PASSWORD_RESET_TOKEN');
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, Number(config.BCRYPT_SALT_ROUNDS));
+
+        await prisma.$transaction(async (tx) => {
+
+            const deletedToken = await tx.passwordResetToken.deleteMany({
+                where: {
+                    id: resetToken.id,
+                    token: tokenHash,
+                    expiresAt: {
+                        gt: new Date(),
+                    },
+                },
+            });
+
+            if (deletedToken.count !== 1) {
+                throw new AppError('Password reset token is invalid or has expired.', 400, 'INVALID_PASSWORD_RESET_TOKEN');
+            }
+
+            await tx.user.update({
+                where: {
+                    id: resetToken.userId,
+                },
+                data: {
+                    password: hashedPassword,
+                },
+            });
+
+            await tx.passwordResetToken.deleteMany({
+                where: {
+                    userId: resetToken.userId,
+                },
+            });
+        });
+
+        return true;
     }
 }
 
