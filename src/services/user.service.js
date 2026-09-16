@@ -90,7 +90,7 @@ class UserService {
         });
 
         if (!user || !await bcrypt.compare(password, user.password)) {
-            throw new AppError('Invalid credentials', 422, 'INVALID_CREDENTIALS');
+            throw new AppError('Incorrect email or password.', 422, 'INVALID_CREDENTIALS');
         }
 
         if (!user.isActive) {
