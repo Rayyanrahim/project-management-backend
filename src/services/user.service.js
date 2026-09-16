@@ -124,11 +124,23 @@ class UserService {
     }
 
     async getMe(userId) {
-        return await prisma.user.findUnique({
+        const user = await prisma.user.findUnique({
             where: {
                 id: BigInt(userId),
-            }
+            },
+            include: {
+                workspaceMemberships: {
+                    include: {
+                        workspace: true,
+                    },
+                },
+            },
         });
+
+        if (!user) return null;
+
+        const { password, ...safeUser } = user;
+        return safeUser;
     }
 
     async getValidAuthSession(refreshToken) {

@@ -24,7 +24,7 @@ class AuthController {
     login = async (req, res) => {
         const { email, password } = req.body;
         const user = await userService.loginUser(email, password);
-        const verification = await authService.generateOtp(user);
+        const verification = user.emailVerifiedAt ? null : await authService.generateOtp(user);
         await authService.setAuthCookies(res, user);
 
         return formatResponse(res, 200, 'Logged in successfully.', { ...user, verification }, 'LOGIN_SUCCESSFULLY');
