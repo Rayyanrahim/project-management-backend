@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 import config from '#config/config.js';
 import AppError from '#utils/AppError.js';
 
-const sendEmail = async ({ to, subject, text }) => {
+const sendEmail = async ({ to, subject, text, html }) => {
     if (!config.SMTP_HOST || !config.SMTP_FROM) {
         throw new AppError('Email delivery is not configured', 500, 'EMAIL_NOT_CONFIGURED');
     }
@@ -19,7 +19,13 @@ const sendEmail = async ({ to, subject, text }) => {
         socketTimeout: 10000,
     });
 
-    return transporter.sendMail({ from: config.SMTP_FROM, to, subject, text });
+    return transporter.sendMail({
+        from: config.SMTP_FROM,
+        to,
+        subject,
+        text,
+        ...(html && { html }),
+    });
 };
 
 export default sendEmail;

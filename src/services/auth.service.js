@@ -5,7 +5,8 @@ import { ACCESS_TOKEN_EXPIRATION, REFRESH_TOKEN_EXPIRATION, FORGOT_PASSWORD_TOKE
 import verificationStatus from '#constant/verification.js';
 import createOtpCode from '#utils/generateOtp.js';
 import timeStringToSeconds from '#utils/timeUtils.js';
-import sendEmail from '#utils/sendEmail.js';
+import renderEmailTemplate from '#utils/renderEmailTemplate.js';
+import { enqueueOtpEmail, enqueuePasswordResetEmail } from '#jobs/email.queue.js';
 import userService from '#services/user.service.js';
 import bcrypt from 'bcrypt';
 import AppError from '#utils/AppError.js';
@@ -105,10 +106,17 @@ class AuthService {
         });
 
         try {
-            await sendEmail({
+            const html = await renderEmailTemplate('otp', {
+                otp,
+                expiryMinutes,
+            });
+
+            await enqueueOtpEmail({
                 to: user.email,
                 subject: 'Your verification code',
                 text: `Your verification code is ${otp}. It expires in ${expiryMinutes} minutes.`,
+                html,
+                verificationId: String(verification.id),
             });
         } catch {
             await prisma.verification.update({
@@ -240,12 +248,20 @@ class AuthService {
         });
 
         try {
-            await sendEmail({
+            const expiryMinutes = expirySeconds / 60;
+            const html = await renderEmailTemplate('password-reset', {
+                resetUrl: resetUrl.toString(),
+                expiryMinutes,
+            });
+
+            await enqueuePasswordResetEmail({
                 to: user.email,
                 subject: 'Reset your password',
-                text: `Use this link to reset your password:\n${resetUrl.toString()}\n\nThis link expires in ${expirySeconds / 60} minutes. If you did not request a password reset, you can ignore this email.`,
+                text: `Use this link to reset your password:\n${resetUrl.toString()}\n\nThis link expires in ${expiryMinutes} minutes. If you did not request a password reset, you can ignore this email.`,
+                html,
+                tokenHash,
             });
-        } catch (error) {
+        } catch {
             await prisma.passwordResetToken.deleteMany({ where: { token: tokenHash } });
             throw new AppError('Unable to send password reset email. Please try again.', 500, 'PASSWORD_RESET_EMAIL_FAILED');
         }

@@ -21,6 +21,9 @@ const config = {
   SMTP_PASSWORD: process.env.SMTP_PASSWORD,
   SMTP_FROM: process.env.SMTP_FROM,
   PASSWORD_RESET_URL: process.env.PASSWORD_RESET_URL,
+  REDIS_HOST: process.env.REDIS_HOST || '127.0.0.1',
+  REDIS_PORT: Number(process.env.REDIS_PORT || 6379),
+  REDIS_PASSWORD: process.env.REDIS_PASSWORD || undefined,
 }
 
 config.DATABASE_URL = buildDatabaseUrl({
