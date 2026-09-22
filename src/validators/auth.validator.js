@@ -1,4 +1,4 @@
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 import { OTP_LENGTH } from '#constant/constant.js';
 
 export const verifyOtpValidator = [
@@ -31,6 +31,12 @@ export const forgotPasswordValidator = [
         .isEmail()
         .withMessage('Please provide a valid email')
         .normalizeEmail(),
+];
+
+export const passwordResetTokenValidator = [
+    param('token')
+        .matches(/^[a-f0-9]{64}$/i)
+        .withMessage('Invalid reset token'),
 ];
 
 export const resetPasswordValidator = [

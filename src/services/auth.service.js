@@ -229,7 +229,7 @@ class AuthService {
         const token = randomBytes(32).toString('hex');
         const tokenHash = createHash('sha256').update(token).digest('hex');
         const expirySeconds = timeStringToSeconds(FORGOT_PASSWORD_TOKEN_EXPIRATION);
-        resetUrl.searchParams.set('token', token);
+        resetUrl.pathname = `${resetUrl.pathname.replace(/\/$/, '')}/${token}`;
 
         await prisma.passwordResetToken.create({
             data: {
@@ -249,6 +249,26 @@ class AuthService {
             await prisma.passwordResetToken.deleteMany({ where: { token: tokenHash } });
             throw new AppError('Unable to send password reset email. Please try again.', 500, 'PASSWORD_RESET_EMAIL_FAILED');
         }
+    }
+
+    async validatePasswordResetToken(token) {
+        const tokenHash = createHash('sha256').update(token).digest('hex');
+
+        const resetToken = await prisma.passwordResetToken.findUnique({
+            where: { token: tokenHash },
+            select: {
+                expiresAt: true,
+                user: {
+                    select: { isActive: true },
+                },
+            },
+        });
+
+        if (!resetToken || resetToken.expiresAt <= new Date() || !resetToken.user?.isActive) {
+            throw new AppError('Password reset token is invalid or has expired.', 400, 'INVALID_PASSWORD_RESET_TOKEN');
+        }
+
+        return true;
     }
 
     async resetPassword(token, newPassword) {

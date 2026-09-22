@@ -35,6 +35,21 @@ function mockUserLookup(t, implementation) {
     return replacement;
 }
 
+function mockPasswordResetTokenLookup(t, implementation) {
+    const original = prisma.passwordResetToken.findUnique;
+    const replacement = t.mock.fn(implementation);
+    prisma.passwordResetToken.findUnique = replacement;
+    t.after(() => { prisma.passwordResetToken.findUnique = original; });
+    return replacement;
+}
+
+async function startTestServer(t) {
+    const server = app.listen(0, '127.0.0.1');
+    await new Promise(resolve => server.once('listening', resolve));
+    t.after(() => new Promise(resolve => server.close(resolve)));
+    return `http://127.0.0.1:${server.address().port}`;
+}
+
 function createResponse() {
     return {
         statusCode: null,
@@ -235,4 +250,90 @@ test('login generates an OTP only when the user email is unverified', async (t) 
     assert.equal(verifiedResponse.body.data.verification, null);
     assert.equal(unverifiedResponse.body.data.verification.status, 'PENDING');
     assert.equal(setAuthCookies.mock.callCount(), 2);
+});
+
+test('GET reset-password token endpoint accepts an active, unexpired reset token', async (t) => {
+    const token = 'a'.repeat(64);
+    mockPasswordResetTokenLookup(t, async (query) => {
+        assert.deepEqual(query, {
+            where: {
+                token: 'ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb',
+            },
+            select: {
+                expiresAt: true,
+                user: {
+                    select: { isActive: true },
+                },
+            },
+        });
+        return {
+            expiresAt: new Date(Date.now() + 60_000),
+            user: { isActive: true },
+        };
+    });
+
+    const baseUrl = await startTestServer(t);
+    const response = await fetch(`${baseUrl}/api/v1/auth/reset-password/${token}`);
+
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    assert.deepEqual(await response.json(), {
+        status: 'success',
+        message: 'Password reset token is valid.',
+        messageCode: 'PASSWORD_RESET_TOKEN_VALID',
+    });
+});
+
+test('GET reset-password token endpoint rejects an unknown reset token', async (t) => {
+    mockPasswordResetTokenLookup(t, async () => null);
+
+    const baseUrl = await startTestServer(t);
+    const response = await fetch(`${baseUrl}/api/v1/auth/reset-password/${'b'.repeat(64)}`);
+
+    assert.equal(response.status, 400);
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    assert.equal((await response.json()).messageCode, 'INVALID_PASSWORD_RESET_TOKEN');
+});
+
+test('GET reset-password token endpoint rejects an expired reset token', async (t) => {
+    mockPasswordResetTokenLookup(t, async () => ({
+        expiresAt: new Date(Date.now() - 60_000),
+        user: { isActive: true },
+    }));
+
+    const baseUrl = await startTestServer(t);
+    const response = await fetch(`${baseUrl}/api/v1/auth/reset-password/${'c'.repeat(64)}`);
+
+    assert.equal(response.status, 400);
+    assert.equal((await response.json()).messageCode, 'INVALID_PASSWORD_RESET_TOKEN');
+});
+
+test('GET reset-password token endpoint rejects tokens for inactive users', async (t) => {
+    mockPasswordResetTokenLookup(t, async () => ({
+        expiresAt: new Date(Date.now() + 60_000),
+        user: { isActive: false },
+    }));
+
+    const baseUrl = await startTestServer(t);
+    const response = await fetch(`${baseUrl}/api/v1/auth/reset-password/${'d'.repeat(64)}`);
+
+    assert.equal(response.status, 400);
+    assert.equal((await response.json()).messageCode, 'INVALID_PASSWORD_RESET_TOKEN');
+});
+
+test('GET reset-password token endpoint rejects malformed tokens before lookup', async (t) => {
+    const lookup = mockPasswordResetTokenLookup(t, async () => ({
+        expiresAt: new Date(Date.now() + 60_000),
+        user: { isActive: true },
+    }));
+
+    const baseUrl = await startTestServer(t);
+    const response = await fetch(`${baseUrl}/api/v1/auth/reset-password/not-a-valid-token`);
+    const body = await response.json();
+
+    assert.equal(response.status, 422);
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    assert.equal(body.messageCode, 'VALIDATION_ERROR');
+    assert.equal(body.errors.token, 'Invalid reset token');
+    assert.equal(lookup.mock.callCount(), 0);
 });

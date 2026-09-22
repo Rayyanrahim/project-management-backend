@@ -69,6 +69,12 @@ class AuthController {
         return formatResponse(res, 200, 'If an account with that email exists, a password reset link has been sent.', null, 'FORGOT_PASSWORD_EMAIL_SENT');
     };
 
+    validatePasswordResetToken = async (req, res) => {
+        await authService.validatePasswordResetToken(req.params.token);
+
+        return formatResponse(res, 200, 'Password reset token is valid.', null, 'PASSWORD_RESET_TOKEN_VALID');
+    };
+
     resetPassword = async (req, res) => {
         const { token, password } = req.body;
         await authService.resetPassword(token, password);
