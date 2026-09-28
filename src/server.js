@@ -1,7 +1,7 @@
 import app from './app.js';
 import config from '#config/config.js';
 import prisma from '#config/prisma.js';
-import { emailQueue } from '#jobs/email.queue.js';
+import { emailQueue, isRedisReadyForBullMq } from '#jobs/email.queue.js';
 import { startEmailWorker } from '#jobs/email.worker.js';
 
 async function startServer() {
@@ -11,8 +11,13 @@ async function startServer() {
     await prisma.$connect();
     console.log('PostgreSQL connected');
 
-    emailWorker = startEmailWorker();
-    console.log('Email worker started');
+    const canUseQueue = await isRedisReadyForBullMq();
+    if (canUseQueue) {
+      emailWorker = startEmailWorker();
+      console.log('Email worker started');
+    } else {
+      console.warn('Email worker skipped. Using synchronous email delivery.');
+    }
 
     const server = app.listen(config.PORT, () => {
       console.log(`Server running on http://localhost:${config.PORT}`);

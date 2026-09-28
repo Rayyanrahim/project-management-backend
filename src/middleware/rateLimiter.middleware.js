@@ -8,7 +8,7 @@ const createRateLimiter = ({ windowMs, max, message, messageCode }) => {
         standardHeaders: true,
         legacyHeaders: false,
         handler: (_req, _res, next) => {
-            next(new AppError(message, 429, messageCode));
+            next(new AppError(message, 429, messageCode, { isRateLimited: true }));
         },
     });
 
@@ -32,7 +32,7 @@ export const authRateLimiter = createRateLimiter({
     windowMs: 15 * 60 * 1000,
     max: 20,
     message: 'Too many authentication attempts from this IP, please try again later.',
-    messageCode: 'AUTH_RATE_LIMIT_EXCEEDED',
+    messageCode: 'RATE_LIMIT_EXCEEDED',
 });
 
 export const generalRateLimiter = createRateLimiter({

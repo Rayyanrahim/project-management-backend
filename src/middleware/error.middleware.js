@@ -15,6 +15,10 @@ export const errorHandler = (err, req, res, next) => {
             messageCode: err.messageCode,
         }),
 
+        ...(err.data != null && {
+            data: err.data,
+        }),
+
         ...(config.APP_ENV === 'development' && {
             stack: err.stack,
         }),

@@ -5,6 +5,8 @@ const redisConnection = {
   port: config.REDIS_PORT,
   ...(config.REDIS_PASSWORD && { password: config.REDIS_PASSWORD }),
   maxRetriesPerRequest: null,
+  connectTimeout: 5000,
+  enableOfflineQueue: false,
 };
 
 export default redisConnection;
