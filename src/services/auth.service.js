@@ -192,8 +192,8 @@ class AuthService {
                     emailVerifiedAt: user.emailVerifiedAt ?? new Date(),
                 },
                 include: {
-                    workspaceMemberships: {
-                        include: { workspace: true },
+                    companyMemberships: {
+                        include: { company: true },
                     },
                 },
             });

@@ -5,7 +5,7 @@ import config from '#config/config.js';
 import bcrypt from 'bcrypt';
 import AppError from '#utils/AppError.js';
 import { verifyToken } from '#utils/jwt.js';
-import workSpaceUser from '#constant/workspaceUser.js';
+import companyUser from '#constant/companyUser.js';
 class UserService {
 
     async registerUser(userData) {
@@ -30,7 +30,7 @@ class UserService {
             const baseSlug = this.generateSlug(userData.name);
             const slug = `${baseSlug}-${crypto.randomUUID().slice(0, 8)}`;
 
-            const workspace = await tx.workspace.create({
+            const company = await tx.company.create({
                 data: {
                     name: userData.name,
                     slug,
@@ -38,12 +38,12 @@ class UserService {
                 },
             });
 
-            await tx.workspaceUser.create({
+            await tx.companyUser.create({
                 data: {
-                    workspaceId: workspace.id,
+                    companyId: company.id,
                     userId: user.id,
-                    role: workSpaceUser.OWNER,
-                    status: workSpaceUser.ACTIVE,
+                    role: companyUser.OWNER,
+                    status: companyUser.ACTIVE,
                     joinedAt: new Date(),
                 },
             });
@@ -56,9 +56,9 @@ class UserService {
                 id: result,
             },
             include: {
-                workspaceMemberships: {
+                companyMemberships: {
                     include: {
-                        workspace: true,
+                        company: true,
                     },
                 },
             },
@@ -81,9 +81,9 @@ class UserService {
         const user = await prisma.user.findUnique({
             where: { email },
             include: {
-                workspaceMemberships: {
+                companyMemberships: {
                     include: {
-                        workspace: true,
+                        company: true,
                     },
                 },
             },
@@ -129,9 +129,9 @@ class UserService {
                 id: BigInt(userId),
             },
             include: {
-                workspaceMemberships: {
+                companyMemberships: {
                     include: {
-                        workspace: true,
+                        company: true,
                     },
                 },
             },

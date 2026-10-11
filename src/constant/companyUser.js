@@ -1,4 +1,4 @@
-const workSpaceUser = {
+const companyUser = {
     OWNER: 'OWNER',
     ADMIN: 'ADMIN',
     MEMBER: 'MEMBER',
@@ -8,4 +8,4 @@ const workSpaceUser = {
     INACTIVE: 'INACTIVE',
 };
 
-export default workSpaceUser;
+export default companyUser;

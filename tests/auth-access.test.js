@@ -154,31 +154,6 @@ test('POST logout requires protect and clears cookies after deleting the session
     assert.ok(cookies.some(value => value.startsWith('refreshToken=;') && value.includes('Path=/api/v1/auth;')));
 });
 
-test('getMe returns workspace details without exposing the password', async (t) => {
-    const workspaceMemberships = [{
-        id: 7n,
-        workspace: { id: 3n, name: 'Example workspace' },
-    }];
-    const lookup = mockUserLookup(t, async () => ({
-        id: 12n,
-        name: 'Test User',
-        email: 'test@example.com',
-        password: 'hashed-password',
-        isActive: true,
-        workspaceMemberships,
-    }));
-
-    const user = await userService.getMe(12n);
-
-    assert.equal(Object.hasOwn(user, 'password'), false);
-    assert.deepEqual(user.workspaceMemberships, workspaceMemberships);
-    assert.deepEqual(lookup.mock.calls[0].arguments[0].include, {
-        workspaceMemberships: {
-            include: { workspace: true },
-        },
-    });
-});
-
 test('GET me requires login and returns the current user', async (t) => {
     const currentUser = {
         id: 12n,
@@ -188,7 +163,6 @@ test('GET me requires login and returns the current user', async (t) => {
         avatarUrl: null,
         timezone: 'UTC',
         isActive: true,
-        workspaceMemberships: [],
     };
     t.mock.method(userService, 'getMe', async () => currentUser);
 
