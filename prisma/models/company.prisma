@@ -10,6 +10,7 @@ model Company {
 
   owner       User          @relation("CompanyOwner", fields: [ownerId], references: [id])
   members     CompanyUser[]
+  workspaces  Workspace[]
 
   @@map("companies")
 }

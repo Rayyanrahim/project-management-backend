@@ -12,6 +12,7 @@ model User {
 
   ownedCompanies       Company[]           @relation("CompanyOwner")
   companyMemberships   CompanyUser[]
+  createdWorkspaces    Workspace[]         @relation("WorkspaceCreator")
   authSessions         AuthSession[]
   passwordResetTokens  PasswordResetToken[]
   verification         Verification?

@@ -1,0 +1,18 @@
+model Workspace {
+    id        BigInt   @id @default(autoincrement())
+    companyId BigInt   @map("company_id")
+    name      String   @db.VarChar(255)
+    slug      String   @db.VarChar(255)
+    icon      String?  @db.VarChar(255)
+    color     String?  @db.VarChar(7)
+    isPrivate Boolean  @default(false) @map("is_private")
+    createdBy BigInt   @map("created_by")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    creator User    @relation("WorkspaceCreator", fields: [createdBy], references: [id])
+
+    @@unique([companyId, slug])
+    @@map("workspaces")
+}
