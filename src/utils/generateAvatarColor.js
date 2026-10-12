@@ -40,8 +40,32 @@ function rgbToHex(rgb) {
     return `#${rgb.map(channel => channel.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
 }
 
-const generateAvatarColor = () => {
-    const hue = crypto.randomInt(0, 360);
+function hexToHue(color) {
+    if (!/^#[0-9A-F]{6}$/i.test(color ?? '')) return null;
+
+    const [red, green, blue] = color
+        .slice(1)
+        .match(/.{2}/g)
+        .map(channel => Number.parseInt(channel, 16) / 255);
+    const maximum = Math.max(red, green, blue);
+    const minimum = Math.min(red, green, blue);
+    const difference = maximum - minimum;
+
+    if (difference === 0) return null;
+
+    let hue;
+    if (maximum === red) hue = 60 * (((green - blue) / difference) % 6);
+    else if (maximum === green) hue = 60 * (((blue - red) / difference) + 2);
+    else hue = 60 * (((red - green) / difference) + 4);
+
+    return hue < 0 ? hue + 360 : hue;
+}
+
+const generateAvatarColor = (referenceColor = null) => {
+    const referenceHue = hexToHue(referenceColor);
+    const hue = referenceHue === null
+        ? crypto.randomInt(0, 360)
+        : (referenceHue + crypto.randomInt(120, 241)) % 360;
     const saturation = crypto.randomInt(60, 86);
     let lightness = crypto.randomInt(32, 43);
     let rgb = hslToRgb(hue, saturation, lightness);

@@ -20,7 +20,7 @@ class UserService {
 
         const hashedPassword = await bcrypt.hash(userData.password, Number(config.BCRYPT_SALT_ROUNDS));
         const userColor = generateAvatarColor();
-        const companyColor = generateAvatarColor();
+        const companyColor = generateAvatarColor(userColor);
 
         const result = await prisma.$transaction(async (tx) => {
             const user = await tx.user.create({
