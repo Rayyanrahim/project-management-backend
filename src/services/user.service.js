@@ -5,7 +5,9 @@ import config from '#config/config.js';
 import bcrypt from 'bcrypt';
 import AppError from '#utils/AppError.js';
 import { verifyToken } from '#utils/jwt.js';
+import generateAvatarColor from '#utils/generateAvatarColor.js';
 import companyUser from '#constant/companyUser.js';
+
 class UserService {
 
     async registerUser(userData) {
@@ -17,6 +19,8 @@ class UserService {
         }
 
         const hashedPassword = await bcrypt.hash(userData.password, Number(config.BCRYPT_SALT_ROUNDS));
+        const userColor = generateAvatarColor();
+        const companyColor = generateAvatarColor();
 
         const result = await prisma.$transaction(async (tx) => {
             const user = await tx.user.create({
@@ -24,6 +28,7 @@ class UserService {
                     name: userData.name,
                     email: userData.email,
                     password: hashedPassword,
+                    color: userColor,
                 }
             });
 
@@ -35,6 +40,7 @@ class UserService {
                     name: userData.name,
                     slug,
                     ownerId: user.id,
+                    color: companyColor,
                 },
             });
 
@@ -69,7 +75,6 @@ class UserService {
         return safeUser;
 
     }
-
     generateSlug(value) {
         return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
     }
