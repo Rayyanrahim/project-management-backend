@@ -16,9 +16,11 @@ app.use(cookieParser())
 
 import authRoutes from '#routes/auth.route.js'
 import workspaceRoutes from '#routes/workspace.route.js'
+import companyRoutes from '#routes/company.route.js'
 
 app.use('/api/v1/workspace', workspaceRoutes)
 app.use('/api/v1/auth', authRoutes)
+app.use('/api/v1/company', companyRoutes)
 
 app.set('json replacer', (key, value) => typeof value === 'bigint' ? value.toString() : value);
 app.use(errorHandler)

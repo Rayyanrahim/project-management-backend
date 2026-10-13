@@ -1,17 +1,17 @@
 model Company {
-  id          BigInt        @id @default(autoincrement())
-  name        String        @db.VarChar(255)
-  slug        String        @unique @db.VarChar(255)
-  ownerId     BigInt        @map("owner_id")
-  logoUrl     String?       @map("logo_url") @db.VarChar(500)
-  color       String?       @db.VarChar(7)
-  plan        String        @default("free") @db.VarChar(50)
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
+  id        BigInt   @id @default(autoincrement())
+  name      String   @db.VarChar(255)
+  slug      String   @unique @db.VarChar(255)
+  ownerId   BigInt   @map("owner_id")
+  logo      String?  @map("logo_url") @db.VarChar(500)
+  color     String?  @db.VarChar(7)
+  plan      String   @default("free") @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  owner       User          @relation("CompanyOwner", fields: [ownerId], references: [id])
-  members     CompanyUser[]
-  workspaces  Workspace[]
+  owner      User          @relation("CompanyOwner", fields: [ownerId], references: [id])
+  members    CompanyUser[]
+  workspaces Workspace[]
 
   @@map("companies")
 }

@@ -165,7 +165,6 @@ class UserService {
             orderBy: { id: 'asc' },
             include: {
                 members: {
-                    where: { userId: { not: BigInt(user.id) } },
                     orderBy: { id: 'asc' },
                     include: {
                         role: true,
