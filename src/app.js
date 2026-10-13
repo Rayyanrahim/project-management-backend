@@ -15,7 +15,9 @@ app.use(express.json())
 app.use(cookieParser())
 
 import authRoutes from '#routes/auth.route.js'
+import workspaceRoutes from '#routes/workspace.route.js'
 
+app.use('/api/v1/workspace', workspaceRoutes)
 app.use('/api/v1/auth', authRoutes)
 
 app.set('json replacer', (key, value) => typeof value === 'bigint' ? value.toString() : value);
