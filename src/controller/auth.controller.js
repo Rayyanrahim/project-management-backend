@@ -18,7 +18,8 @@ class AuthController {
         const verification = await authService.generateOtp(user);
         await authService.setAuthCookies(res, user);
 
-        return formatResponse(res, 200, 'Registered successfully. OTP sent for verification.', { ...user, verification }, 'REGISTER_SUCCESSFULLY');
+        const userResponse = await userService.getUserResponse(user);
+        return formatResponse(res, 200, 'Registered successfully. OTP sent for verification.', { ...userResponse, verification }, 'REGISTER_SUCCESSFULLY');
     };
 
     login = async (req, res) => {
@@ -27,14 +28,16 @@ class AuthController {
         const verification = user.emailVerifiedAt ? null : await authService.generateOtp(user);
         await authService.setAuthCookies(res, user);
 
-        return formatResponse(res, 200, 'Logged in successfully.', { ...user, verification }, 'LOGIN_SUCCESSFULLY');
+        const userResponse = await userService.getUserResponse(user);
+        return formatResponse(res, 200, 'Logged in successfully.', { ...userResponse, verification }, 'LOGIN_SUCCESSFULLY');
     };
 
     verifyOtp = async (req, res) => {
         const { user, verification } = await authService.verifyOtp({ userId: req.user.id, otp: req.body.otp });
         await authService.setAuthCookies(res, user);
 
-        return formatResponse(res, 200, 'OTP verified successfully.', { ...user, verification }, 'OTP_VERIFIED');
+        const userResponse = await userService.getUserResponse(user);
+        return formatResponse(res, 200, 'OTP verified successfully.', { ...userResponse, verification }, 'OTP_VERIFIED');
     };
 
     refresh = async (req, res) => {

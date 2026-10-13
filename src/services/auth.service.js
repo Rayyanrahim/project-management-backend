@@ -193,6 +193,7 @@ class AuthService {
                 },
                 include: {
                     companyMemberships: {
+                        orderBy: { id: 'asc' },
                         include: { company: true },
                     },
                 },

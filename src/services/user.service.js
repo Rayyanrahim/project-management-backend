@@ -7,6 +7,7 @@ import AppError from '#utils/AppError.js';
 import { verifyToken } from '#utils/jwt.js';
 import generateAvatarColor from '#utils/generateAvatarColor.js';
 import companyUser from '#constant/companyUser.js';
+import roleService from '#services/role.service.js';
 
 class UserService {
 
@@ -23,6 +24,8 @@ class UserService {
         const companyColor = generateAvatarColor(userColor);
 
         const result = await prisma.$transaction(async (tx) => {
+            const ownerRoleId = await roleService.getRoleId(companyUser.OWNER, tx);
+
             const user = await tx.user.create({
                 data: {
                     name: userData.name,
@@ -48,7 +51,7 @@ class UserService {
                 data: {
                     companyId: company.id,
                     userId: user.id,
-                    role: companyUser.OWNER,
+                    roleId: ownerRoleId,
                     status: companyUser.ACTIVE,
                     joinedAt: new Date(),
                 },
@@ -63,6 +66,7 @@ class UserService {
             },
             include: {
                 companyMemberships: {
+                    orderBy: { id: 'asc' },
                     include: {
                         company: true,
                     },
@@ -87,6 +91,7 @@ class UserService {
             where: { email },
             include: {
                 companyMemberships: {
+                    orderBy: { id: 'asc' },
                     include: {
                         company: true,
                     },
@@ -135,6 +140,7 @@ class UserService {
             },
             include: {
                 companyMemberships: {
+                    orderBy: { id: 'asc' },
                     include: {
                         company: true,
                     },
@@ -146,6 +152,38 @@ class UserService {
 
         const { password, ...safeUser } = user;
         return safeUser;
+    }
+
+    async getUserResponse(user) {
+        const { password, companyMemberships = [], ...userDetails } = user;
+        const companies = await prisma.company.findMany({
+            where: {
+                members: {
+                    some: { userId: BigInt(user.id), status: companyUser.ACTIVE },
+                },
+            },
+            orderBy: { id: 'asc' },
+            include: {
+                members: {
+                    where: { userId: { not: BigInt(user.id) } },
+                    orderBy: { id: 'asc' },
+                    include: {
+                        role: true,
+                        user: {
+                            omit: { password: true },
+                        },
+                    },
+                },
+            },
+        });
+
+        return {
+            ...userDetails,
+            companies: companies.map(({ members, ...companyDetails }) => ({
+                ...companyDetails,
+                company_user: members,
+            })),
+        };
     }
 
     async getValidAuthSession(refreshToken) {

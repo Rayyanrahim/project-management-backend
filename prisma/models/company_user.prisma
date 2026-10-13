@@ -2,7 +2,7 @@ model CompanyUser {
   id          BigInt    @id @default(autoincrement())
   companyId   BigInt    @map("company_id")
   userId      BigInt    @map("user_id")
-  role        String    @db.VarChar(255)
+  roleId      BigInt    @map("role_id")
   status      String    @db.VarChar(255)
   invitedBy   BigInt?   @map("invited_by")
   joinedAt    DateTime? @map("joined_at")
@@ -11,7 +11,9 @@ model CompanyUser {
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role    Role    @relation(fields: [roleId], references: [id], onDelete: NoAction)
 
   @@unique([companyId, userId], name: "uniq_company_user")
+  @@index([roleId])
   @@map("company_users")
 }

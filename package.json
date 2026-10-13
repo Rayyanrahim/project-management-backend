@@ -5,6 +5,7 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
+    "seed": "prisma db seed",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js"
   },
@@ -16,6 +17,7 @@
     "#utils/*": "./src/utils/*",
     "#validators/*": "./src/validators/*",
     "#services/*": "./src/services/*",
+    "#seeders/*": "./src/seeders/*",
     "#constant/*": "./src/constant/*",
     "#jobs/*": "./src/jobs/*"
   },
