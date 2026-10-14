@@ -1,19 +1,30 @@
 import { body, param } from 'express-validator';
 
+const companyIdParam = () => param('companyId')
+    .matches(/^[1-9]\d{0,18}$/)
+    .withMessage('Company ID must be a positive integer')
+    .bail()
+    .custom((value) => BigInt(value) <= 9223372036854775807n)
+    .withMessage('Company ID is out of range');
+
+export const removeCompanyLogoValidator = [companyIdParam()];
+
 export const updateCompanyValidator = [
-    param('companyId')
-        .matches(/^[1-9]\d{0,18}$/)
-        .withMessage('Company ID must be a positive integer')
-        .bail()
-        .custom((value) => BigInt(value) <= 9223372036854775807n)
-        .withMessage('Company ID is out of range'),
+    companyIdParam(),
 
     body()
-        .custom((value) => value !== null
-            && typeof value === 'object'
-            && !Array.isArray(value)
-            && ['name', 'color', 'logo'].some((field) => Object.hasOwn(value, field)))
-        .withMessage('Provide at least one of name, color, or logo'),
+        .custom((value, { req }) => {
+            const hasField = value !== null
+                && typeof value === 'object'
+                && !Array.isArray(value)
+                && ['name', 'color', 'logo'].some((field) => Object.hasOwn(value, field));
+
+            if (hasField || req.file) {
+                return true;
+            }
+
+            throw new Error('Provide at least one of name, color, or logo');
+        }),
 
     body('name')
         .optional()

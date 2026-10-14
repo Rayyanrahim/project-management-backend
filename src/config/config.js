@@ -24,6 +24,9 @@ const config = {
   REDIS_HOST: process.env.REDIS_HOST || '127.0.0.1',
   REDIS_PORT: Number(process.env.REDIS_PORT || 6379),
   REDIS_PASSWORD: process.env.REDIS_PASSWORD || undefined,
+  IMAGEKIT_PUBLIC_KEY: process.env.IMAGEKIT_PUBLIC_KEY,
+  IMAGEKIT_PRIVATE_KEY: process.env.IMAGEKIT_PRIVATE_KEY,
+  IMAGEKIT_URL_ENDPOINT: process.env.IMAGEKIT_URL_ENDPOINT,
 }
 
 config.DATABASE_URL = buildDatabaseUrl({
