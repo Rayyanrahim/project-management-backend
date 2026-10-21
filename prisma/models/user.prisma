@@ -11,12 +11,14 @@ model User {
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
-  ownedCompanies      Company[]            @relation("CompanyOwner")
-  companyMemberships  CompanyUser[]
-  createdWorkspaces   Workspace[]          @relation("WorkspaceCreator")
-  authSessions        AuthSession[]
-  passwordResetTokens PasswordResetToken[]
-  verification        Verification?
+  ownedCompanies               Company[]            @relation("CompanyOwner")
+  companyMemberships           CompanyUser[]
+  createdWorkspaces            Workspace[]          @relation("WorkspaceCreator")
+  authSessions                 AuthSession[]
+  passwordResetTokens          PasswordResetToken[]
+  verification                 Verification?
+  sentCompanyInvitations       CompanyInvitation[]  @relation("CompanyInvitationInviter")
+  acceptedCompanyInvitations   CompanyInvitation[]  @relation("CompanyInvitationAccepter")
 
   @@map("users")
 }

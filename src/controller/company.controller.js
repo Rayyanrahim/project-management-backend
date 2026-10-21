@@ -16,6 +16,12 @@ class CompanyController {
 
         return formatResponse(res, 200, 'Company logo removed successfully.', userResponse, 'COMPANY_LOGO_REMOVED');
     };
+
+    getCompanyMembers = async (req, res) => {
+        const data = await companyService.getCompanyMembers(req.params.companyId);
+
+        return formatResponse(res, 200, 'Company members fetched successfully.', data, 'COMPANY_MEMBERS_FETCHED');
+    };
 }
 
 export default new CompanyController();

@@ -1,7 +1,8 @@
 model Role {
-  id           BigInt        @id @default(autoincrement())
-  name         String        @unique @db.VarChar(255)
-  companyUsers CompanyUser[]
+  id                 BigInt              @id @default(autoincrement())
+  name               String              @unique @db.VarChar(255)
+  companyUsers       CompanyUser[]
+  companyInvitations CompanyInvitation[]
 
   @@map("roles")
 }

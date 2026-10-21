@@ -9,6 +9,8 @@ const companyIdParam = () => param('companyId')
 
 export const removeCompanyLogoValidator = [companyIdParam()];
 
+export const getCompanyMembersValidator = [companyIdParam()];
+
 export const updateCompanyValidator = [
     companyIdParam(),
 

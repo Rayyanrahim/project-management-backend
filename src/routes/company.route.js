@@ -4,10 +4,11 @@ import { protect } from '#middleware/auth.middleware.js';
 import { requireActiveCompany } from '#middleware/company.middleware.js';
 import upload from '#middleware/upload.middleware.js';
 import { validate } from '#middleware/validator.middleware.js';
-import { removeCompanyLogoValidator, updateCompanyValidator } from '#validators/company.validator.js';
+import { getCompanyMembersValidator, removeCompanyLogoValidator, updateCompanyValidator} from '#validators/company.validator.js';
 
 const router = express.Router();
 
+router.get('/:companyId/members', protect, validate(getCompanyMembersValidator), requireActiveCompany, companyController.getCompanyMembers);
 router.patch('/:companyId', protect, upload.single('logo'), validate(updateCompanyValidator), requireActiveCompany, companyController.updateCompany);
 router.delete('/:companyId/logo', protect, validate(removeCompanyLogoValidator), requireActiveCompany, companyController.removeCompanyLogo);
 

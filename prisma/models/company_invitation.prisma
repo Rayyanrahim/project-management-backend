@@ -1,0 +1,23 @@
+model CompanyInvitation {
+  id          BigInt    @id @default(autoincrement())
+  companyId   BigInt    @map("company_id")
+  email       String    @db.VarChar(255)
+  roleId      BigInt    @map("role_id")
+  token       String    @unique @db.VarChar(255)
+  status      String    @default("PENDING") @db.VarChar(50)
+  invitedBy   BigInt    @map("invited_by")
+  acceptedBy  BigInt?   @map("accepted_by")
+  expiresAt   DateTime  @map("expires_at")
+  acceptedAt  DateTime? @map("accepted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  company  Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  role     Role    @relation(fields: [roleId], references: [id], onDelete: NoAction)
+  inviter  User    @relation("CompanyInvitationInviter", fields: [invitedBy], references: [id], onDelete: Cascade)
+  accepter User?   @relation("CompanyInvitationAccepter", fields: [acceptedBy], references: [id], onDelete: SetNull)
+
+  @@index([companyId, email])
+  @@index([status])
+  @@map("company_invitations")
+}

@@ -9,9 +9,10 @@ model Company {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  owner      User          @relation("CompanyOwner", fields: [ownerId], references: [id])
-  members    CompanyUser[]
-  workspaces Workspace[]
+  owner       User                @relation("CompanyOwner", fields: [ownerId], references: [id])
+  members     CompanyUser[]
+  workspaces  Workspace[]
+  invitations CompanyInvitation[]
 
   @@map("companies")
 }
